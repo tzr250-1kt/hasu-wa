@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>端数は私が - スマートな割り勘アプリ</title>
+    <style>
+        /* 色の定義（CSS変数） */
+        :root {
+            /* ライトモード（基本設定） */
+            --bg-color: #f5f5f7;
+            --text-color: #333333;
+            --text-muted: #777777;
+            --input-bg: #ffffff;
+            --border-color: #cccccc;
+            --table-bg: #ffffff;
+            --th-bg: #eeeeee;
+            --row-hover: #f9f9f9;
+            --row-selected: #e8f5e9;
+            --accent-green: #4CAF50;
+            --accent-orange: #f57c00;
+            --accent-red: #d84315;
+            --accent-blue: #1976d2;
+            --error-red: #d32f2f;
+            --total-row-bg: #e0e0e0;
+            
+            /* テーマ切り替えボタン用（ライトモード時は黒ボタン） */
+            --toggle-btn-bg: #121212;
+            --toggle-btn-text: #ffffff;
+        }
+
+        /* ダークモード設定 */
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #ffffff;
+            --text-muted: #aaaaaa;
+            --input-bg: #1e1e1e;
+            --border-color: #333333;
+            --table-bg: #1e1e1e;
+            --th-bg: #2c2c2c;
+            --row-hover: #2c2c2c;
+            --row-selected: #383838;
+            --accent-green: #4CAF50;
+            --accent-orange: #ffb74d;
+            --accent-red: #ff8a65;
+            --accent-blue: #90caf9;
+            --error-red: #ff5252;
+            --total-row-bg: #222222;
+            
+            /* テーマ切り替えボタン用（ダークモード時は白ボタン） */
+            --toggle-btn-bg: #ffffff;
+            --toggle-btn-text: #121212;
+        }
+
+        /* 全体のデザイン */
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        /* ヘッダー周り */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+        .theme-toggle-btn {
+            background-color: var(--toggle-btn-bg);
+            color: var(--toggle-btn-text);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: 0.2s;
+        }
+        .theme-toggle-btn:hover {
+            opacity: 0.8;
+            transform: scale(0.98);
+        }
+
+        /* 入力フォーム */
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent-green);
+        }
+
+        /* 表の基本デザイン */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background-color: var(--table-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: background-color 0.3s;
+        }
+        th, td {
+            padding: 15px 10px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--th-bg);
+            font-size: 14px;
+            font-weight: normal;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        td {
+            font-size: 16px;
+        }
+        
+        /* タップできる行 */
+        .clickable-row {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .clickable-row:hover {
+            background-color: var(--row-hover);
+        }
+        .selected-row {
+            background-color: var(--row-selected) !important;
+            border-left: 4px solid var(--accent-green);
+        }
+        
+        /* セクションエリア */
+        .section-area {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed var(--border-color);
+        }
+        .table-title {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: var(--text-muted);
+        }
+        .summary-title {
+            color: var(--accent-green);
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* 文字色のハイライト */
+        .fraction-amount { color: var(--accent-blue); }
+        .boss-amount { color: var(--accent-orange); font-weight: bold; font-size: 18px; }
+        .top-boss-amount { color: var(--accent-red); font-weight: bold; font-size: 18px; }
+
+        /* スイッチ風チェックボックス */
+        .toggle-container {
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+        .toggle-label {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            color: var(--accent-green);
+            font-size: 15px;
+            background-color: var(--table-bg);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+        .toggle-label input {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        /* 第2テーブル用のスクロールラッパー */
+        .table-scroll-wrapper {
+            max-height: 280px;
+            overflow-y: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-top: 10px;
+            background-color: var(--table-bg);
+        }
+        .table-scroll-wrapper table {
+            margin-top: 0;
+            border-radius: 0;
+        }
+        .table-scroll-wrapper::-webkit-scrollbar {
+            width: 8px;
+        }
+        .table-scroll-wrapper::-webkit-scrollbar-thumb {
+            background-color: var(--text-muted);
+            border-radius: 4px;
+        }
+        .table-scroll-wrapper th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            border-bottom: 2px solid var(--bg-color);
+        }
+
+        /* 人数入力・自動表示パネル */
+        .boss-split-panel {
+            display: flex; 
+            gap: 20px; 
+            align-items: center; 
+            margin-bottom: 15px; 
+            background-color: var(--table-bg); 
+            padding: 15px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border-color);
+        }
+
+        /* 合計行のスタイル */
+        .total-row {
+            border-top: 2px solid var(--border-color);
+            background-color: var(--total-row-bg);
+        }
+        .total-row td {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-container">
+        <h1>端数は私が</h1>
+        <button id="themeToggle" class="theme-toggle-btn">切り替え</button>
+    </div>
+
+    <div class="input-group">
+        <label for="totalAmount">合計金額 (円)</label>
+        <input type="number" id="totalAmount" placeholder="例: 11250" inputmode="numeric">
+    </div>
+
+    <div class="input-group">
+        <label for="totalPeople">参加人数 (人)</label>
+        <input type="number" id="totalPeople" placeholder="例: 5" inputmode="numeric">
+    </div>
+
+    <div class="input-group">
+        <label for="bossCount">端数負担人数 (人)</label>
+        <input type="number" id="bossCount" placeholder="例: 1" value="1" inputmode="numeric">
+    </div>
+
+    <div class="table-title" style="margin-top: 30px;">▼ タップして切り捨て単位を選んでください ▼</div>
+    <table>
+        <thead>
+            <tr>
+                <th>単位</th>
+                <th>一般 (1人)</th>
+                <th>残りの金額</th>
+                <th>負担者 (1人)</th>
+            </tr>
+        </thead>
+        <tbody id="resultBody"></tbody>
+    </table>
+
+    <div id="splitBossContainer" class="toggle-container">
+        <label class="toggle-label">
+            <input type="checkbox" id="splitBossToggle">
+            負担者をさらに「中堅」と「大ボス」に分ける
+        </label>
+    </div>
+
+    <div id="secondTierArea" class="section-area" style="display: none;">
+        <div class="table-title" style="color: var(--accent-orange);">▼ 中堅と大ボスの支払いバランスを選んでください ▼</div>
+        
+        <div class="boss-split-panel">
+            <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                <label for="midBossCountInput">中堅の人数 (人)</label>
+                <input type="number" id="midBossCountInput" value="1" min="1" inputmode="numeric">
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <span style="color: var(--text-muted); font-size: 13px; display: block; margin-bottom: 2px;">自動計算: 大ボス</span>
+                <span id="displayBigBossCount" style="color: var(--accent-red); font-weight: bold; font-size: 24px;">1</span> <span style="color: var(--text-muted); font-size: 14px;">人</span>
+            </div>
+        </div>
+
+        <div class="table-scroll-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>中堅 (1人)</th>
+                        <th>最終残り</th>
+                        <th>大ボス (1人)</th>
+                    </tr>
+                </thead>
+                <tbody id="resultBody2"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="summaryArea" class="section-area">
+        <div class="table-title summary-title">▼ 最終的なお支払いまとめ ▼</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>役職</th>
+                    <th>1人あたり</th>
+                    <th>人数</th>
+                    <th>小計</th>
+                </tr>
+            </thead>
+            <tbody id="summaryBody"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    // --- テーマ切り替えのロジック ---
+    const themeToggleBtn = document.getElementById('themeToggle');
+    
+    function setTheme(isDark) {
+        if (isDark) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeToggleBtn.innerHTML = '☀️ ライト';
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            themeToggleBtn.innerHTML = '🌙 ダーク';
+        }
+    }
+
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let isDarkMode = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    
+    setTheme(isDarkMode);
+
+    themeToggleBtn.addEventListener('click', () => {
+        isDarkMode = !isDarkMode;
+        setTheme(isDarkMode);
+        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    });
+
+    // --- 割り勘計算ロジック ---
+    const totalAmountInput = document.getElementById('totalAmount');
+    const totalPeopleInput = document.getElementById('totalPeople');
+    const bossCountInput = document.getElementById('bossCount');
+    
+    const resultBody = document.getElementById('resultBody');
+    const splitBossContainer = document.getElementById('splitBossContainer');
+    const splitBossToggle = document.getElementById('splitBossToggle');
+    
+    const secondTierArea = document.getElementById('secondTierArea');
+    const midBossCountInput = document.getElementById('midBossCountInput');
+    const displayBigBossCount = document.getElementById('displayBigBossCount');
+    const resultBody2 = document.getElementById('resultBody2');
+
+    const summaryArea = document.getElementById('summaryArea');
+    const summaryBody = document.getElementById('summaryBody');
+
+    const unitsTier1 = [1000, 500, 100, 10];
+    let selectedTier1Unit = 1000;
+    let selectedTier2MidPayment = null;
+    
+    let previousBossCount = parseInt(bossCountInput.value) || 1;
+
+    function calculateAll() {
+        const totalAmount = parseInt(totalAmountInput.value) || 0;
+        const totalPeople = parseInt(totalPeopleInput.value) || 0;
+        const bossCount = parseInt(bossCountInput.value) || 0;
+
+        if (bossCount !== previousBossCount) {
+            if (bossCount > 1) {
+                midBossCountInput.value = bossCount - 1;
+            }
+            previousBossCount = bossCount;
+        }
+
+        resultBody.innerHTML = '';
+        summaryBody.innerHTML = '';
+
+        if (totalAmount <= 0 || totalPeople <= 0 || bossCount <= 0 || totalPeople <= bossCount) {
+            resultBody.innerHTML = '<tr><td colspan="4" style="color: var(--text-muted);">金額と人数を正しく入力してください</td></tr>';
+            splitBossContainer.style.display = 'none';
+            secondTierArea.style.display = 'none';
+            summaryArea.style.display = 'none';
+            return;
+        }
+
+        const regularCount = totalPeople - bossCount;
+        const average = totalAmount / totalPeople;
+
+        let selectedRowData = null;
+        let isSelectedUnitValid = false;
+
+        // --- 第1表 ---
+        unitsTier1.forEach((unit, index) => {
+            let regularPayment = Math.floor(average / unit) * unit;
+            let totalRegularPayment = regularPayment * regularCount;
+            let remainingAmount = totalAmount - totalRegularPayment;
+            let bossPayment = Math.ceil(remainingAmount / bossCount);
+
+            const rowData = { unit, regularPayment, totalRegularPayment, remainingAmount, bossPayment };
+            
+            if (unit === selectedTier1Unit) {
+                isSelectedUnitValid = true;
+                selectedRowData = rowData;
+            }
+
+            const tr = document.createElement('tr');
+            tr.classList.add('clickable-row');
+            if (unit === selectedTier1Unit) tr.classList.add('selected-row');
+            
+            tr.onclick = function() {
+                selectedTier1Unit = unit;
+                selectedTier2MidPayment = null;
+                calculateAll();
+            };
+
+            tr.innerHTML = `
+                <td>${unit}円</td>
+                <td>${regularPayment.toLocaleString()}円<br><span style="font-size:12px; color: var(--text-muted);">(${regularCount}人)</span></td>
+                <td class="fraction-amount">${remainingAmount.toLocaleString()}円</td>
+                <td class="boss-amount">${bossPayment.toLocaleString()}円<br><span style="font-size:12px; color: var(--text-muted);">(${bossCount}人)</span></td>
+            `;
+            resultBody.appendChild(tr);
+        });
+
+        if (!isSelectedUnitValid) {
+            selectedTier1Unit = unitsTier1[0];
+            calculateAll();
+            return;
+        }
+
+        if (bossCount >= 2) {
+            splitBossContainer.style.display = 'block';
+        } else {
+            splitBossContainer.style.display = 'none';
+            splitBossToggle.checked = false;
+        }
+
+        summaryArea.style.display = 'block';
+
+        // --- 第2表とまとめ ---
+        if (splitBossToggle.checked) {
+            secondTierArea.style.display = 'block';
+            
+            let midBossCount = parseInt(midBossCountInput.value);
+            if (isNaN(midBossCount)) {
+                midBossCount = bossCount > 1 ? bossCount - 1 : 1;
+                midBossCountInput.value = midBossCount;
+            }
+
+            if (midBossCount >= bossCount) {
+                midBossCount = bossCount - 1; 
+                midBossCountInput.value = midBossCount;
+            }
+            if (midBossCount < 1) {
+                midBossCount = 1;
+                midBossCountInput.value = 1;
+            }
+
+            const finalBossCount = bossCount - midBossCount;
+            displayBigBossCount.innerText = finalBossCount; 
+            
+            let scenarios = [];
+            let currentMid = selectedRowData.regularPayment;
+
+            while (true) {
+                let totalMid = currentMid * midBossCount;
+                let rem2 = selectedRowData.remainingAmount - totalMid;
+                let topBoss = rem2 > 0 ? Math.ceil(rem2 / finalBossCount) : 0;
+
+                if (currentMid > topBoss && scenarios.length > 0) break;
+
+                scenarios.push({
+                    mid: currentMid,
+                    rem2: rem2,
+                    topBoss: topBoss
+                });
+
+                if (currentMid > topBoss || rem2 <= 0) break;
+                currentMid += 100;
+            }
+
+            let validSelection = scenarios.find(s => s.mid === selectedTier2MidPayment);
+            if (!validSelection) {
+                selectedTier2MidPayment = scenarios[0].mid;
+                validSelection = scenarios[0];
+            }
+
+            resultBody2.innerHTML = '';
+            scenarios.forEach((s) => {
+                const tr = document.createElement('tr');
+                tr.classList.add('clickable-row');
+                if (s.mid === selectedTier2MidPayment) tr.classList.add('selected-row');
+                
+                tr.onclick = function() {
+                    selectedTier2MidPayment = s.mid;
+                    calculateAll();
+                };
+                
+                let midLabel = (s.mid === selectedRowData.regularPayment) 
+                    ? `<br><span style="font-size:11px; color: var(--accent-orange);">(一般と同額)</span>` 
+                    : ``;
+
+                tr.innerHTML = `
+                    <td>${s.mid.toLocaleString()}円${midLabel}</td>
+                    <td class="fraction-amount">${s.rem2.toLocaleString()}円</td>
+                    <td class="top-boss-amount">${s.topBoss.toLocaleString()}円</td>
+                `;
+                resultBody2.appendChild(tr);
+            });
+
+            const totalMidPayment = validSelection.mid * midBossCount;
+            const totalBossPayment = validSelection.topBoss * finalBossCount;
+            const totalCollected = selectedRowData.totalRegularPayment + totalMidPayment + totalBossPayment;
+            const surplus = totalCollected - totalAmount;
+
+            let surplusHtml = '';
+            if (surplus > 0) {
+                surplusHtml = `
+                    <tr>
+                        <td colspan="3" style="text-align: right; color: var(--text-muted); font-size: 13px; padding-right: 20px;">※お店への支払い後のあまり</td>
+                        <td style="color: var(--text-muted); font-size: 13px;">+${surplus.toLocaleString()}円</td>
+                    </tr>
+                `;
+            }
+            
+            summaryBody.innerHTML = `
+                <tr>
+                    <td>一般</td>
+                    <td>${selectedRowData.regularPayment.toLocaleString()}円</td>
+                    <td>${regularCount}人</td>
+                    <td class="fraction-amount">${selectedRowData.totalRegularPayment.toLocaleString()}円</td>
+                </tr>
+                <tr>
+                    <td>中堅</td>
+                    <td>${validSelection.mid.toLocaleString()}円</td>
+                    <td>${midBossCount}人</td>
+                    <td class="fraction-amount">${totalMidPayment.toLocaleString()}円</td>
+                </tr>
+                <tr>
+                    <td style="color: var(--accent-red); font-weight: bold;">大ボス</td>
+                    <td class="top-boss-amount">${validSelection.topBoss.toLocaleString()}円</td>
+                    <td style="color: var(--accent-red); font-weight: bold;">${finalBossCount}人</td>
+                    <td class="fraction-amount" style="color: var(--accent-red); font-weight: bold;">${totalBossPayment.toLocaleString()}円</td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="2">集金合計</td>
+                    <td>${totalPeople}人</td>
+                    <td class="fraction-amount">${totalCollected.toLocaleString()}円</td>
+                </tr>
+                ${surplusHtml}
+            `;
+
+        } else {
+            secondTierArea.style.display = 'none';
+            const totalBossPayment = selectedRowData.bossPayment * bossCount;
+            const totalCollected = selectedRowData.totalRegularPayment + totalBossPayment;
+            const surplus = totalCollected - totalAmount;
+
+            let surplusHtml = '';
+            if (surplus > 0) {
+                surplusHtml = `
+                    <tr>
+                        <td colspan="3" style="text-align: right; color: var(--text-muted); font-size: 13px; padding-right: 20px;">※お店への支払い後のあまり</td>
+                        <td style="color: var(--text-muted); font-size: 13px;">+${surplus.toLocaleString()}円</td>
+                    </tr>
+                `;
+            }
+
+            summaryBody.innerHTML = `
+                <tr>
+                    <td>一般</td>
+                    <td>${selectedRowData.regularPayment.toLocaleString()}円</td>
+                    <td>${regularCount}人</td>
+                    <td class="fraction-amount">${selectedRowData.totalRegularPayment.toLocaleString()}円</td>
+                </tr>
+                <tr>
+                    <td style="color: var(--accent-orange); font-weight: bold;">負担者</td>
+                    <td class="boss-amount">${selectedRowData.bossPayment.toLocaleString()}円</td>
+                    <td style="color: var(--accent-orange); font-weight: bold;">${bossCount}人</td>
+                    <td class="fraction-amount" style="color: var(--accent-orange); font-weight: bold;">${totalBossPayment.toLocaleString()}円</td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="2">集金合計</td>
+                    <td>${totalPeople}人</td>
+                    <td class="fraction-amount">${totalCollected.toLocaleString()}円</td>
+                </tr>
+                ${surplusHtml}
+            `;
+        }
+    }
+
+    totalAmountInput.addEventListener('input', calculateAll);
+    totalPeopleInput.addEventListener('input', calculateAll);
+    bossCountInput.addEventListener('input', calculateAll);
+    splitBossToggle.addEventListener('change', calculateAll);
+    midBossCountInput.addEventListener('input', calculateAll);
+
+    calculateAll();
+</script>
+
+</body>
+</html>
