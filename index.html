@@ -310,20 +310,20 @@
     <div id="splitBossContainer" class="toggle-container">
         <label class="toggle-label">
             <input type="checkbox" id="splitBossToggle">
-            負担者をさらに「中堅」と「ボス」に分ける
+            負担者をさらに「多めに払う人」と「1番払う人」に分ける
         </label>
     </div>
 
     <div id="secondTierArea" class="section-area" style="display: none;">
-        <div class="table-title" style="color: var(--accent-orange);">▼ 中堅とボスの支払いバランスを選んでください ▼</div>
+        <div class="table-title" style="color: var(--accent-orange);">▼ 多めに払う人と1番払う人との支払いバランスを選んでください ▼</div>
         
         <div class="boss-split-panel">
             <div class="input-group" style="flex: 1; margin-bottom: 0;">
-                <label for="midBossCountInput">中堅の人数 (人)</label>
+                <label for="midBossCountInput">多めに払う人数 (人)</label>
                 <input type="number" id="midBossCountInput" value="1" min="1" inputmode="numeric">
             </div>
             <div style="flex: 1; text-align: center;">
-                <span style="color: var(--text-muted); font-size: 13px; display: block; margin-bottom: 2px;">自動計算: ボス</span>
+                <span style="color: var(--text-muted); font-size: 13px; display: block; margin-bottom: 2px;">自動計算: 1番払う人</span>
                 <span id="displayBigBossCount" style="color: var(--accent-red); font-weight: bold; font-size: 24px;">1</span> <span style="color: var(--text-muted); font-size: 14px;">人</span>
             </div>
         </div>
@@ -332,9 +332,9 @@
             <table>
                 <thead>
                     <tr>
-                        <th>中堅 (1人)</th>
+                        <th>多めに払う人 (1人)</th>
                         <th>最終残り</th>
-                        <th>ボス (1人)</th>
+                        <th>1番払う人 (1人)</th>
                     </tr>
                 </thead>
                 <tbody id="resultBody2"></tbody>
@@ -693,6 +693,7 @@
 </body>
 
 </html>
+
 
 
 
