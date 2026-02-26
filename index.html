@@ -310,12 +310,12 @@
     <div id="splitBossContainer" class="toggle-container">
         <label class="toggle-label">
             <input type="checkbox" id="splitBossToggle">
-            負担者をさらに「中堅」と「大ボス」に分ける
+            負担者をさらに「中堅」と「ボス」に分ける
         </label>
     </div>
 
     <div id="secondTierArea" class="section-area" style="display: none;">
-        <div class="table-title" style="color: var(--accent-orange);">▼ 中堅と大ボスの支払いバランスを選んでください ▼</div>
+        <div class="table-title" style="color: var(--accent-orange);">▼ 中堅とボスの支払いバランスを選んでください ▼</div>
         
         <div class="boss-split-panel">
             <div class="input-group" style="flex: 1; margin-bottom: 0;">
@@ -323,7 +323,7 @@
                 <input type="number" id="midBossCountInput" value="1" min="1" inputmode="numeric">
             </div>
             <div style="flex: 1; text-align: center;">
-                <span style="color: var(--text-muted); font-size: 13px; display: block; margin-bottom: 2px;">自動計算: 大ボス</span>
+                <span style="color: var(--text-muted); font-size: 13px; display: block; margin-bottom: 2px;">自動計算: ボス</span>
                 <span id="displayBigBossCount" style="color: var(--accent-red); font-weight: bold; font-size: 24px;">1</span> <span style="color: var(--text-muted); font-size: 14px;">人</span>
             </div>
         </div>
@@ -334,7 +334,7 @@
                     <tr>
                         <th>中堅 (1人)</th>
                         <th>最終残り</th>
-                        <th>大ボス (1人)</th>
+                        <th>ボス (1人)</th>
                     </tr>
                 </thead>
                 <tbody id="resultBody2"></tbody>
@@ -355,6 +355,11 @@
             </thead>
             <tbody id="summaryBody"></tbody>
         </table>
+        <div style="text-align: center; margin-top: 25px;">
+            <button id="copyLineBtn" style="background-color: #06C755; color: white; border: none; padding: 14px 24px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 300px; transition: 0.3s;">
+                <span style="margin-right: 5px;">💬</span>LINE用に結果をコピー
+            </button>
+        </div>
     </div>
 <div style="margin-top: 40px; padding: 20px; text-align: left; background-color: var(--table-bg); border-radius: 8px; font-size: 0.9em; line-height: 1.6; border: 1px solid var(--border-color);">
         <h2 style="font-size: 1.2em; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-top: 0; color: var(--accent-green);">「端数は私が」とは？</h2>
@@ -497,6 +502,8 @@
         summaryArea.style.display = 'block';
 
         // --- 第2表とまとめ ---
+        let currentLineText = ""; // コピー用テキストを準備
+
         if (splitBossToggle.checked) {
             secondTierArea.style.display = 'block';
             
@@ -596,7 +603,7 @@
                     <td class="fraction-amount">${totalMidPayment.toLocaleString()}円</td>
                 </tr>
                 <tr>
-                    <td style="color: var(--accent-red); font-weight: bold;">大ボス</td>
+                    <td style="color: var(--accent-red); font-weight: bold;">ボス</td>
                     <td class="top-boss-amount">${validSelection.topBoss.toLocaleString()}円</td>
                     <td style="color: var(--accent-red); font-weight: bold;">${finalBossCount}人</td>
                     <td class="fraction-amount" style="color: var(--accent-red); font-weight: bold;">${totalBossPayment.toLocaleString()}円</td>
@@ -608,6 +615,9 @@
                 </tr>
                 ${surplusHtml}
             `;
+
+            // ★ 中堅・ボスの3層分けパターンのテキスト
+            currentLineText = `昨日はお疲れ様でした！\nお会計の精算です🍻\n\n一般（${regularCount}名）: ${selectedRowData.regularPayment.toLocaleString()}円\n中堅（${midBossCount}名）: ${validSelection.mid.toLocaleString()}円\nボス（${finalBossCount}名）: ${validSelection.topBoss.toLocaleString()}円\n\n▼送金はこちらからお願いします\n[PayPay等のリンクを貼る]`;
 
         } else {
             secondTierArea.style.display = 'none';
@@ -645,6 +655,29 @@
                 </tr>
                 ${surplusHtml}
             `;
+
+            // ★ 一般と負担者の2層分けパターンのテキスト
+            currentLineText = `昨日はお疲れ様でした！\nお会計の精算です🍻\n\n一般（${regularCount}名）: ${selectedRowData.regularPayment.toLocaleString()}円\n負担者（${bossCount}名）: ${selectedRowData.bossPayment.toLocaleString()}円\n\n▼送金はこちらからお願いします\n[PayPay等のリンクを貼る]`;
+        }
+
+        const copyBtn = document.getElementById('copyLineBtn');
+        if (copyBtn) {
+            const newBtn = copyBtn.cloneNode(true);
+            copyBtn.parentNode.replaceChild(newBtn, copyBtn);
+            
+            newBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(currentLineText).then(() => {
+                    const originalHtml = newBtn.innerHTML;
+                    newBtn.innerHTML = "コピーしました！ ✅";
+                    newBtn.style.backgroundColor = "#2b902f"; 
+                    setTimeout(() => {
+                        newBtn.innerHTML = originalHtml;
+                        newBtn.style.backgroundColor = "#06C755"; 
+                    }, 2000);
+                }).catch(err => {
+                    alert("コピーに失敗しました。ブラウザの権限を確認してください。");
+                });
+            });
         }
     }
 
