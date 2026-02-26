@@ -67,6 +67,10 @@
             --toggle-btn-text: #121212;
         }
 
+	[data-theme="dark"] h1 {
+            color: #e0e0e0; /* 真っ白(#ffffff)から少しだけ彩度を落とした色 */
+        }
+
         /* 全体のデザイン */
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
@@ -271,7 +275,7 @@
 
 <div class="container">
     <div class="header-container">
-        <h1>端数は私が</h1>
+	<h1>端数は私が<span style="font-size: 13px; font-weight: normal; color: var(--text-muted); margin-left: 10px;">〜上司のためのスマートな計算ツール〜</span></h1>
         <button id="themeToggle" class="theme-toggle-btn">切り替え</button>
     </div>
 
@@ -656,3 +660,8 @@
 </body>
 
 </html>
+
+
+
+
+
