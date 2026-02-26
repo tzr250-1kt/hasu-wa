@@ -615,10 +615,9 @@
                 </tr>
                 ${surplusHtml}
             `;
-
-            // ★ 中堅・ボスの3層分けパターンのテキスト
-            currentLineText = `昨日はお疲れ様でした！\nお会計の精算です🍻\n\n一般（${regularCount}名）: ${selectedRowData.regularPayment.toLocaleString()}円\n多めに払う人（${midBossCount}名）: ${validSelection.mid.toLocaleString()}円\n1番払う人（${finalBossCount}名）: ${validSelection.topBoss.toLocaleString()}円\n\n▼送金はこちらからお願いします\n[PayPay等のリンクを貼る]`;
-
+			// ★ 多めに払う人・1番払う人の3層分けパターンのテキスト
+            currentLineText = `昨日はお疲れ様でした！\nお会計の精算です🍻\n\n・${selectedRowData.regularPayment.toLocaleString()}円 （一般: ${regularCount}名）\n・${validSelection.mid.toLocaleString()}円 （多めに払う人: ${midBossCount}名）\n・${validSelection.topBoss.toLocaleString()}円 （1番払う人: ${finalBossCount}名）\n\n▼送金はこちらからお願いします\n[PayPay等のリンクを貼る]`;
+          
         } else {
             secondTierArea.style.display = 'none';
             const totalBossPayment = selectedRowData.bossPayment * bossCount;
@@ -657,8 +656,8 @@
             `;
 
             // ★ 一般と負担者の2層分けパターンのテキスト
-            currentLineText = `昨日はお疲れ様でした！\nお会計の精算です🍻\n\n一般（${regularCount}名）: ${selectedRowData.regularPayment.toLocaleString()}円\n負担者（${bossCount}名）: ${selectedRowData.bossPayment.toLocaleString()}円\n\n▼送金はこちらからお願いします\n[PayPay等のリンクを貼る]`;
-        }
+            currentLineText = `昨日はお疲れ様でした！\nお会計の精算です🍻\n\n・${selectedRowData.regularPayment.toLocaleString()}円 （一般: ${regularCount}名）\n・${selectedRowData.bossPayment.toLocaleString()}円 （負担者: ${bossCount}名）\n\n▼送金はこちらからお願いします\n[PayPay等のリンクを貼る]`; 
+		}
 
         const copyBtn = document.getElementById('copyLineBtn');
         if (copyBtn) {
