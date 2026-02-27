@@ -620,7 +620,7 @@
                 ${surplusHtml}
             `;
 			// ★ 多めに払う人・1番払う人の3層分けパターンのテキスト
-            currentLineText = `昨日はお疲れ様でした！\nお会計の精算です🍻\n\n・${selectedRowData.regularPayment.toLocaleString()}円 （一般: ${regularCount}名）\n・${validSelection.mid.toLocaleString()}円 （多めに払う人: ${midBossCount}名）\n・${validSelection.topBoss.toLocaleString()}円 （1番払う人: ${finalBossCount}名）\n\n▼送金はこちらからお願いします\n[PayPay等のリンクを貼る]`;
+            currentLineText = `昨日はお疲れ様でした！\nお会計の精算です🍻\n\n・${selectedRowData.regularPayment.toLocaleString()}円 （一般: ${regularCount}名）\n・${validSelection.mid.toLocaleString()}円 （多めに払う人: ${midBossCount}名）\n・${validSelection.topBoss.toLocaleString()}円 （1番払う人: ${finalBossCount}名）\n\n▼送金はこちらからお願いします\n[PayPay等のリンクを貼る]\n\n--\n💡 割り勘計算は「端数は私が」を使いました！`;
           
         } else {
             secondTierArea.style.display = 'none';
@@ -660,7 +660,7 @@
             `;
 
             // ★ 一般と負担者の2層分けパターンのテキスト
-            currentLineText = `昨日はお疲れ様でした！\nお会計の精算です🍻\n\n・${selectedRowData.regularPayment.toLocaleString()}円 （一般: ${regularCount}名）\n・${selectedRowData.bossPayment.toLocaleString()}円 （負担者: ${bossCount}名）\n\n▼送金はこちらからお願いします\n[PayPay等のリンクを貼る]`; 
+            currentLineText = `昨日はお疲れ様でした！\nお会計の精算です🍻\n\n・${selectedRowData.regularPayment.toLocaleString()}円 （一般: ${regularCount}名）\n・${selectedRowData.bossPayment.toLocaleString()}円 （負担者: ${bossCount}名）\n\n▼送金はこちらからお願いします\n[PayPay等のリンクを貼る]\n\n--\n💡 割り勘計算は「端数は私が」を使いました！`; 
 		}
 
         const copyBtn = document.getElementById('copyLineBtn');
@@ -696,6 +696,7 @@
 </body>
 
 </html>
+
 
 
 
